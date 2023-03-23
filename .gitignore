@@ -1,0 +1,11 @@
+# OS
+.DS_Store
+
+# IDEs and editors
+.idea
+.vscode
+
+# large file
+*.svg
+*.pdf
+*.png
