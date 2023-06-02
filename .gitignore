@@ -9,3 +9,6 @@
 *.svg
 *.pdf
 *.png
+
+# log from hydra
+outputs
