@@ -1,0 +1,3 @@
+prefix:
+  colab: "/content/drive/MyDrive/Colab_Notebooks/fraud-detection"
+  local: ".."

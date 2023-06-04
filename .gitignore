@@ -9,6 +9,10 @@
 *.svg
 *.pdf
 *.png
+*.csv
+*.parquet
+*.zip
 
 # log from hydra
 outputs
+notebook

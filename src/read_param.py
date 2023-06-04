@@ -3,12 +3,10 @@ from omegaconf import DictConfig
 import hydra
 
 
-@hydra.main(config_path="../conf", config_name="model")
+@hydra.main(config_path="../conf", config_name="params")
 def my_app(cfg : DictConfig) -> None:
-    print(cfg.model.random_state)
+    print(cfg.features)
 
 
 if __name__ == "__main__":
     my_app()
-
-
