@@ -1,3 +1,7 @@
+fraud_types:
+  - "Weak internal control"
+  - "Non-top management"
+  - "Others: subsidiary violation"
 features:
   - GVKEY
   - datadate

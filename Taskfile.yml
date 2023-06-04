@@ -1,0 +1,7 @@
+version: '3'
+
+tasks:
+  setup:
+    desc: Create out/ directory if it doesn't exist
+    cmds:
+      - mkdir -p ./out

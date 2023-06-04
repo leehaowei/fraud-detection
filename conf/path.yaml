@@ -1,3 +1,3 @@
 prefix:
-  colab: "/content/drive/MyDrive/Colab_Notebooks/fraud-detection"
+  colab: "/content/drive/MyDrive/fs/thesis/fraud-detection"
   local: ".."
