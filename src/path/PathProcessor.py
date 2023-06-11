@@ -28,3 +28,8 @@ class PathProcessor:
     def get_random(self):
         return OmegaConf.load(self.base + "random.yaml")
 
+    def get_mapping(self, which: str):
+        dtype_mapping_str = OmegaConf.load(self.base + "params.yaml")[which]
+        dtype_mapping = {k: eval(v) for k, v in dtype_mapping_str.items()}
+        return dtype_mapping
+
