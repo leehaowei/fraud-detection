@@ -4,13 +4,12 @@ from omegaconf import OmegaConf
 
 class PathProcessor:
 
-    def __init__(self, mode, target_file):
+    def __init__(self, mode):
         self.mode = mode
-        self.target_file = target_file
 
         match self.mode:
             case "colab":
-                self.base = "/content/drive/MyDrive/fs/thesis/fraud-detection"
+                self.base = "/content/fraud-detection"
             case "local":
                 self.base = ".."
 
@@ -19,8 +18,9 @@ class PathProcessor:
     def get_path_prefix(self) -> str:
         return OmegaConf.load(self.base + "path.yaml")["prefix"][self.mode]
 
-    def get_full_path(self) -> Path:
-        return Path(self.get_path_prefix() + self.target_file)
+    def get_data_path(self, target_file: str) -> Path:
+        bucket = "https://fs-fraud-dectection.s3.eu-central-1.amazonaws.com/data/"
+        return Path(bucket + target_file)
 
     def get_param(self, which: str):
         return OmegaConf.load(self.base + "params.yaml")[which]
