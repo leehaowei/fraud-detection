@@ -1,4 +1,3 @@
-from pathlib import Path
 from omegaconf import OmegaConf
 
 
@@ -18,9 +17,9 @@ class PathProcessor:
     def get_path_prefix(self) -> str:
         return OmegaConf.load(self.base + "path.yaml")["prefix"][self.mode]
 
-    def get_data_path(self, target_file: str) -> Path:
+    def get_data_path(self, target_file: str) -> str:
         bucket = "https://fs-fraud-dectection.s3.eu-central-1.amazonaws.com/data/"
-        return Path(bucket + target_file)
+        return bucket + target_file
 
     def get_param(self, which: str):
         return OmegaConf.load(self.base + "params.yaml")[which]
