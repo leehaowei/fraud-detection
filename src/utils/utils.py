@@ -6,7 +6,9 @@ def inspector(df: pd.DataFrame, col, target):
     return df[filter_]
 
 
-def generate_records(df: pd.DataFrame, n:int, target_col: str, start_col: str, end_col: str):
+def generate_records(
+    df: pd.DataFrame, n: int, target_col: str, start_col: str, end_col: str
+):
     rows = []
     for _, row in df.iterrows():
         start_year = row[start_col] - n
@@ -19,7 +21,7 @@ def generate_records(df: pd.DataFrame, n:int, target_col: str, start_col: str, e
     return new_df.reset_index(drop=True)
 
 
-def fill_nan_str(df, col:str, to_fill: str):
+def fill_nan_str(df, col: str, to_fill: str):
     # Copy the dataframe to avoid modifying the original one
     df_filled = df.copy()
 

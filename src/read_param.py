@@ -4,7 +4,7 @@ import hydra
 
 
 @hydra.main(config_path="../conf", config_name="params")
-def my_app(cfg : DictConfig) -> None:
+def my_app(cfg: DictConfig) -> None:
     print(cfg.features)
 
 
