@@ -89,11 +89,31 @@ def cleanup_dataframe(df, n, targets):
 
 
 def clean_dict(data_dict, valid_keys):
+    """
+    Filters the input dictionary based on valid keys.
+
+    Parameters:
+    - data_dict (dict): The original dictionary.
+    - valid_keys (list): List of valid keys.
+
+    Returns:
+    - dict: A dictionary filtered based on valid keys.
+    """
     data_dict_copy = {k: v for k, v in data_dict.items() if k in valid_keys}
     return data_dict_copy
 
 
 def get_years_to_drop(df, data_dict):
+    """
+    Add 'years_to_drop' to the info dict for each key in the data_dict.
+
+    Parameters:
+    - df (pd.DataFrame): Dataframe containing the 'gvkey' and 'year' columns.
+    - data_dict (dict): Dictionary containing info for each 'gvkey'.
+
+    Returns:
+    - dict: An updated dictionary with 'years_to_drop' added to each key's info.
+    """
     for key in data_dict:
         gvkey_filter = df["gvkey"] == key
         temp_df = df[gvkey_filter]
@@ -103,6 +123,17 @@ def get_years_to_drop(df, data_dict):
 
 
 def create_concatenated_df(df, data_dict):
+    """
+    Creates a concatenated DataFrame by appending rows from the input DataFrame
+    that satisfy certain conditions based on data_dict.
+
+    Parameters:
+    - df (pd.DataFrame): The input DataFrame.
+    - data_dict (dict): Dictionary containing 'gvkey' and corresponding info.
+
+    Returns:
+    - pd.DataFrame: A concatenated DataFrame.
+    """
     empty_df = pd.DataFrame(columns=df.columns)
     concatenated_df = empty_df.copy()
 
