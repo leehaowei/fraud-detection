@@ -68,6 +68,11 @@ def load_yaml(file):
     return data_dict
 
 
+def save_yaml(target, file):
+    with open(file, "w") as file:
+        yaml.dump(target, file)
+
+
 def get_keys(data_dict, category):
     return list(data_dict[category].keys())
 
