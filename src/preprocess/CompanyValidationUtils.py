@@ -2,6 +2,24 @@ import pandas as pd
 
 
 def select_gvkeys_and_create_df(df, comparable_gvkey_dict, gvkeys_icw):
+    """
+    Select relevant gvkeys and create dataframe
+
+    Parameters
+    ----------
+    df : DataFrame
+        The DataFrame containing all the data.
+    comparable_gvkey_dict : dict
+        A dictionary where the key is a gvkey and the value is a dict containing
+        the comparable company and year for that gvkey.
+    gvkeys_icw : list
+        A list containing gvkeys related to internal control weaknesses
+
+    Returns
+    -------
+    DataFrame
+        A DataFrame that contains data for the selected gvkeys.
+    """
     # Generate list of selected gvkeys
     comparable_non_fraud_list = [
         v["comparable_company"] for k, v in comparable_gvkey_dict.items()
@@ -16,6 +34,22 @@ def select_gvkeys_and_create_df(df, comparable_gvkey_dict, gvkeys_icw):
 
 
 def concatenate_selected_df(df_selected, comparable_gvkey_dict):
+    """
+    Concatenate selected dataframes based on gvkeys.
+
+    Parameters
+    ----------
+    df_selected : DataFrame
+        The DataFrame containing data for selected gvkeys.
+    comparable_gvkey_dict : dict
+        A dictionary where the key is a gvkey and the value is a dict containing
+        the comparable company and year for that gvkey.
+
+    Returns
+    -------
+    DataFrame
+        A DataFrame that contains the concatenated data.
+    """
     # Initialize an empty dataframe
     empty_df = pd.DataFrame(columns=df_selected.columns)
     concatenated_df = empty_df.copy()
@@ -42,6 +76,19 @@ def concatenate_selected_df(df_selected, comparable_gvkey_dict):
 
 
 def filter_data_sufficient_amount(df_selected):
+    """
+    Filter data based on the number of records per gvkey.
+
+    Parameters
+    ----------
+    df_selected : DataFrame
+        The DataFrame containing selected data.
+
+    Returns
+    -------
+    DataFrame
+        A DataFrame that contains data with sufficient amount.
+    """
     # Create filters
     filter_sufficient_amount = df_selected.groupby("gvkey").size() > 10
     filter_selected_sufficient = df_selected["gvkey"].isin(
@@ -54,6 +101,20 @@ def filter_data_sufficient_amount(df_selected):
 
 
 def select_and_clean_data(df_sufficient):
+    """
+    Select and clean data by selecting last 10 years of data for each gvkey
+    and dropping unnecessary columns.
+
+    Parameters
+    ----------
+    df_sufficient : DataFrame
+        The DataFrame containing data with sufficient amount.
+
+    Returns
+    -------
+    DataFrame
+        A DataFrame that contains selected and cleaned data.
+    """
     df1 = df_sufficient.copy()
     df1.loc[:, "rank"] = df1.groupby("gvkey").cumcount(ascending=False)
     selected_df_10_years = df1[df1["rank"] < 10]
