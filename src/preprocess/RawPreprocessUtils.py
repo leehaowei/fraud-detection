@@ -3,6 +3,61 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import yaml
+import requests
+
+
+# Setting motive and filtering data
+def process_icw_keys(df, gvkeys_icw):
+    # Loop over each ICW key to add a 'motive' column and drop certain records
+    for gvkey, year_list in gvkeys_icw.items():
+        # Various filters for key and year range
+        gvkey_filter = df["gvkey"] == gvkey
+        year_filter = df["year"].between(year_list[0], year_list[1], inclusive=True)
+        filters = gvkey_filter & year_filter
+
+        df.loc[
+            filters, "motive"
+        ] = 1  # Set 'motive' to 1 for records matching the filters
+
+        filter_to_drop = (
+            df["year"] > year_list[1]
+        ) & gvkey_filter  # Create a filter for records to drop
+
+        filtered_df = df[~filter_to_drop]  # Apply the filter
+
+        df = filtered_df.copy()
+    return df
+
+
+# Finding comparable companies
+def find_comparable_companies(df, gvkeys_icw, gvkeys_non_fraud_temp):
+    # Loop over each fraud gvkey to find a comparable company
+    comparable_gvkey_dict = {}
+    for fraud_gvkeys in list(gvkeys_icw.keys()):
+        # Various setup and filters
+        temp_dict = {}
+        non_fraud_filter = df["gvkey"].isin(list(gvkeys_non_fraud_temp.keys()))
+        non_fraud_df_temp = df.loc[non_fraud_filter, :]
+        fraud_df_temp = df[df["gvkey"] == fraud_gvkeys].iloc[-1]
+        last_fraud_year = int(fraud_df_temp["year"])
+        temp_dict["comparable_year"] = last_fraud_year
+        at_lower_bound = fraud_df_temp["at_lower_bound"]
+        at_upper_bound = fraud_df_temp["at_upper_bound"]
+        year_filter = non_fraud_df_temp["year"] == last_fraud_year
+        at_filter = non_fraud_df_temp["at"].between(
+            at_lower_bound, at_upper_bound, inclusive=True
+        )
+        filters = year_filter & at_filter
+
+        # Select the gvkey of the comparable company
+        non_fraud_gvkey_pass = non_fraud_df_temp[filters]["gvkey"]
+        selected = non_fraud_gvkey_pass.iloc[0]
+
+        # Update the temporary dictionary and remove the selected key from the temporary non-fraud keys
+        temp_dict["comparable_company"] = selected
+        comparable_gvkey_dict[fraud_gvkeys] = temp_dict
+        gvkeys_non_fraud_temp.pop(selected)
+    return comparable_gvkey_dict
 
 
 def remove_nan(df, col):
@@ -66,6 +121,26 @@ def load_yaml(file):
     with open(file, "r") as f:
         data_dict = yaml.safe_load(f)
     return data_dict
+
+
+def load_yaml_from_public_s3(url):
+    """Load a YAML file from a public S3 bucket."""
+    response = requests.get(url)
+
+    try:
+        data = yaml.safe_load(response.text)
+        return data
+    except yaml.YAMLError as error:
+        print(f"Error parsing YAML file: {error}")
+        return None
+
+
+def add_percentile_columns(
+    df: pd.DataFrame, target_column: str, lower_bound: float, upper_bound: float
+) -> pd.DataFrame:
+    df[f"{target_column}_lower_bound"] = df[target_column] * lower_bound
+    df[f"{target_column}_upper_bound"] = df[target_column] * upper_bound
+    return df
 
 
 def save_yaml(target, file):
