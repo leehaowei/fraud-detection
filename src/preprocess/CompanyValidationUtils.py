@@ -68,3 +68,8 @@ def select_and_clean_data(df_sufficient):
     selected_df_10_years.rename(columns={"datadate": "year"}, inplace=True)
 
     return selected_df_10_years
+
+
+def info(df: pd.DataFrame):
+    print(df.shape)
+    return df.head()
