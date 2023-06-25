@@ -1,6 +1,36 @@
 import pandas as pd
 
 
+def find_comparable_companies(df, gvkeys_icw, gvkeys_non_fraud_temp):
+    # Loop over each fraud gvkey to find a comparable company
+    comparable_gvkey_dict = {}
+    for fraud_gvkeys in list(gvkeys_icw.keys()):
+        # Various setup and filters
+        temp_dict = {}
+        non_fraud_filter = df["gvkey"].isin(list(gvkeys_non_fraud_temp.keys()))
+        non_fraud_df_temp = df.loc[non_fraud_filter, :]
+        fraud_df_temp = df[df["gvkey"] == fraud_gvkeys].iloc[-1]
+        last_fraud_year = int(fraud_df_temp["year"])
+        temp_dict["comparable_year"] = last_fraud_year
+        at_lower_bound = fraud_df_temp["at_lower_bound"]
+        at_upper_bound = fraud_df_temp["at_upper_bound"]
+        year_filter = non_fraud_df_temp["year"] == last_fraud_year
+        at_filter = non_fraud_df_temp["at"].between(
+            at_lower_bound, at_upper_bound, inclusive=True
+        )
+        filters = year_filter & at_filter
+
+        # Select the gvkey of the comparable company
+        non_fraud_gvkey_pass = non_fraud_df_temp[filters]["gvkey"]
+        selected = non_fraud_gvkey_pass.iloc[0]
+
+        # Update the temporary dictionary and remove the selected key from the temporary non-fraud keys
+        temp_dict["comparable_company"] = selected
+        comparable_gvkey_dict[fraud_gvkeys] = temp_dict
+        gvkeys_non_fraud_temp.pop(selected)
+    return comparable_gvkey_dict
+
+
 def select_gvkeys_and_create_df(df, comparable_gvkey_dict, gvkeys_icw):
     """
     Select relevant gvkeys and create dataframe
@@ -90,7 +120,7 @@ def filter_data_sufficient_amount(df_selected):
         A DataFrame that contains data with sufficient amount.
     """
     # Create filters
-    filter_sufficient_amount = df_selected.groupby("gvkey").size() > 10
+    filter_sufficient_amount = df_selected.groupby("gvkey").size() >= 10
     filter_selected_sufficient = df_selected["gvkey"].isin(
         list(filter_sufficient_amount[filter_sufficient_amount].index)
     )
