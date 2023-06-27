@@ -146,16 +146,16 @@ def add_percentile_columns(
     upper_bound_suffix: str = "upper_bound",
 ) -> pd.DataFrame:
     df[f"{target_column}_{lower_bound_suffix}"] = df[target_column].apply(
-        get_bounding, lower_bound
+        lambda x: get_bounding(target_value=x, bound=lower_bound)
     )
     df[f"{target_column}_{upper_bound_suffix}"] = df[target_column].apply(
-        get_bounding, upper_bound
+        lambda x: get_bounding(target_value=x, bound=upper_bound)
     )
     return df
 
 
-def get_bounding(target_column: float, bound: float):
-    return target_column * bound
+def get_bounding(target_value: float, bound: float):
+    return target_value * bound
 
 
 def save_yaml(target, file):
