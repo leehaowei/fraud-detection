@@ -122,7 +122,7 @@ def get_years_to_drop(df, data_dict):
     return data_dict
 
 
-def create_concatenated_df(df, data_dict):
+def keep_only_comparable_year(df, data_dict):
     """
     Creates a concatenated DataFrame by appending rows from the input DataFrame
     that satisfy certain conditions based on data_dict.
