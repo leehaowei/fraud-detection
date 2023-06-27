@@ -6,27 +6,60 @@ import yaml
 import requests
 
 
-# Setting motive and filtering data
-def process_icw_keys(df, gvkeys_icw):
-    # Loop over each ICW key to add a 'motive' column and drop certain records
-    for gvkey, year_list in gvkeys_icw.items():
-        # Various filters for key and year range
-        gvkey_filter = df["gvkey"] == gvkey
-        year_filter = df["year"].between(year_list[0], year_list[1], inclusive=True)
-        filters = gvkey_filter & year_filter
+def get_violation_years(gvkey: str, gvkeys_icw: dict) -> tuple:
+    return gvkeys_icw[gvkey] if gvkey in gvkeys_icw else (0, 0)
 
-        df.loc[
-            filters, "motive"
-        ] = 1  # Set 'motive' to 1 for records matching the filters
 
-        filter_to_drop = (
-            df["year"] > year_list[1]
-        ) & gvkey_filter  # Create a filter for records to drop
+def check_if_icw(gvkey: str, gvkeys_icw) -> bool:
+    return True if gvkey in gvkeys_icw else False
 
-        filtered_df = df[~filter_to_drop]  # Apply the filter
 
-        df = filtered_df.copy()
+def assign_label(df, label: int = 1):
+    df = df.copy()
+
+    gvkey_filter = df["is_icw"] == 1
+    year_filter = df["year"].between(df["bv_year"], df["ev_year"], inclusive=True)
+    filters = gvkey_filter & year_filter
+    df.loc[filters, "motive"] = label
+
     return df
+
+
+def remove_records_after_bv_years(df):
+    df = df.copy()
+
+    gvkey_filter = df["is_icw"] == 1
+
+    filter_to_remove = (
+        df["year"] > df["ev_year"]
+    ) & gvkey_filter  # Create a filter for records to drop
+
+    filtered_df = df[~filter_to_remove]  # Apply the filter
+
+    return filtered_df
+
+
+# # Setting motive and filtering data
+# def remove_records_after_last_violation(df, gvkeys_icw):
+#     # Loop over each ICW key to add a 'motive' column and drop certain records
+#     for gvkey, year_list in gvkeys_icw.items():
+#         # Various filters for key and year range
+#         gvkey_filter = df["gvkey"] == gvkey
+#         year_filter = df["year"].between(year_list[0], year_list[1], inclusive=True)
+#         filters = gvkey_filter & year_filter
+#
+#         df.loc[
+#             filters, "motive"
+#         ] = 1  # Set 'motive' to 1 for records matching the filters
+#
+#         filter_to_drop = (
+#             df["year"] > year_list[1]
+#         ) & gvkey_filter  # Create a filter for records to drop
+#
+#         filtered_df = df[~filter_to_drop]  # Apply the filter
+#
+#         df = filtered_df.copy()
+#     return df
 
 
 def remove_nan(df, col):
@@ -105,11 +138,24 @@ def load_yaml_from_public_s3(url):
 
 
 def add_percentile_columns(
-    df: pd.DataFrame, target_column: str, lower_bound: float, upper_bound: float
+    df: pd.DataFrame,
+    target_column: str,
+    lower_bound: float,
+    upper_bound: float,
+    lower_bound_suffix: str = "lower_bound",
+    upper_bound_suffix: str = "upper_bound",
 ) -> pd.DataFrame:
-    df[f"{target_column}_lower_bound"] = df[target_column] * lower_bound
-    df[f"{target_column}_upper_bound"] = df[target_column] * upper_bound
+    df[f"{target_column}_{lower_bound_suffix}"] = df[target_column].apply(
+        get_bounding, lower_bound
+    )
+    df[f"{target_column}_{upper_bound_suffix}"] = df[target_column].apply(
+        get_bounding, upper_bound
+    )
     return df
+
+
+def get_bounding(target_column: float, bound: float):
+    return target_column * bound
 
 
 def save_yaml(target, file):
