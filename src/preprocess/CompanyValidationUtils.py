@@ -29,9 +29,9 @@ def find_comparable_companies(
         current_fraud_gvkeys_df = fraud_df[fraud_df["gvkey"] == fraud_gvkeys]
 
         current_fraud_df_last = current_fraud_gvkeys_df[
-            current_fraud_gvkeys_df["year"] == current_fraud_gvkeys_df["bv_year"]
+            current_fraud_gvkeys_df["year"] == current_fraud_gvkeys_df["ev_year"]
         ]
-        comparable_year: int = current_fraud_df_last["bv_year"].item()
+        comparable_year: int = current_fraud_df_last["ev_year"].item()
         at_lower_bound: float = current_fraud_df_last["at_lower_bound"].item()
         at_upper_bound: float = current_fraud_df_last["at_upper_bound"].item()
 
