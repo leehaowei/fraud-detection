@@ -30,3 +30,6 @@ class PathProcessor:
         dtype_mapping_str = OmegaConf.load(self.base + "feature_params.yaml")[which]
         dtype_mapping = {k: eval(v) for k, v in dtype_mapping_str.items()}
         return dtype_mapping
+
+    def get_model_params(self):
+        return OmegaConf.load(self.base + "model_params.yaml")

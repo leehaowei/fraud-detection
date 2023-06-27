@@ -99,7 +99,11 @@ def clean_dict(data_dict, valid_keys):
     Returns:
     - dict: A dictionary filtered based on valid keys.
     """
-    data_dict_copy = {k: v for k, v in data_dict.items() if (k in valid_keys) and (v["comparable_company"] in valid_keys)}
+    data_dict_copy = {
+        k: v
+        for k, v in data_dict.items()
+        if (k in valid_keys) and (v["comparable_company"] in valid_keys)
+    }
     return data_dict_copy
 
 
