@@ -1,6 +1,19 @@
 import pandas as pd
 
 
+def filter_gvkeys(df, original_gvkeys_icw, target_motive: int):
+    gvkeys_filtered: list = list(df[df["motive"] == target_motive]["gvkey"].unique())
+
+    return {k: v for k, v in original_gvkeys_icw.items() if k in gvkeys_filtered}
+
+
+def split_fraud_and_non(df, fraud_check_col: str = "is_icw"):
+    fraud_filter = df[fraud_check_col] == 1
+    non_fraud_filter = df[fraud_check_col] == 0
+
+    return df.loc[fraud_filter, :], df.loc[non_fraud_filter, :]
+
+
 def find_comparable_companies(
     fraud_df, non_fraud_df, gvkeys_icw, gvkeys_non_fraud, target_compared: str = "at"
 ):
@@ -133,7 +146,7 @@ def remove_comparable_after_bv_year(df_selected, comparable_gvkey_dict):
     return concatenated_df
 
 
-def filter_data_sufficient_amount(df_selected):
+def filter_data_sufficient_amount(df_selected, n=10):
     """
     Filter data based on the number of records per gvkey.
 
@@ -141,6 +154,9 @@ def filter_data_sufficient_amount(df_selected):
     ----------
     df_selected : DataFrame
         The DataFrame containing selected data.
+    n : int, optional
+        The minimum number of records required per gvkey for the data to be considered sufficient.
+        Default is 10.
 
     Returns
     -------
@@ -148,7 +164,7 @@ def filter_data_sufficient_amount(df_selected):
         A DataFrame that contains data with sufficient amount.
     """
     # Create filters
-    filter_sufficient_amount = df_selected.groupby("gvkey").size() >= 10
+    filter_sufficient_amount = df_selected.groupby("gvkey").size() >= n
     filter_selected_sufficient = df_selected["gvkey"].isin(
         list(filter_sufficient_amount[filter_sufficient_amount].index)
     )
@@ -158,35 +174,38 @@ def filter_data_sufficient_amount(df_selected):
     return df_sufficient
 
 
-def select_and_clean_data(df_sufficient):
+def select_and_clean_data(df, n=10):
     """
     Select and clean data by selecting last 10 years of data for each gvkey
     and dropping unnecessary columns.
 
     Parameters
     ----------
-    df_sufficient : DataFrame
+    df : DataFrame
         The DataFrame containing data with sufficient amount.
+    n : int, optional
+        The minimum number of records required per gvkey for the data to be considered sufficient.
+        Default is 10.
 
     Returns
     -------
     DataFrame
         A DataFrame that contains selected and cleaned data.
     """
-    df1 = df_sufficient.copy()
-    df1.loc[:, "rank"] = df1.groupby("gvkey").cumcount(ascending=False)
-    selected_df_10_years = df1[df1["rank"] < 10]
-    selected_df_10_years = selected_df_10_years.drop(columns=["rank"])
+    df_copy = df.copy()
+    df_copy.loc[:, "rank"] = df_copy.groupby("gvkey").cumcount(ascending=False)
+    selected_df_n_years = df_copy[df_copy["rank"] < n]
+    selected_df_n_years = selected_df_n_years.drop(columns=["rank"])
 
     # Reset index and clean dataframe
-    selected_df_10_years.reset_index(inplace=True, drop=True)
-    selected_df_10_years["datadate"] = selected_df_10_years.pop("year")
-    selected_df_10_years = selected_df_10_years.drop(
+    selected_df_n_years.reset_index(inplace=True, drop=True)
+    selected_df_n_years["datadate"] = selected_df_n_years.pop("year")
+    selected_df_n_years = selected_df_n_years.drop(
         ["at_lower_bound", "at_upper_bound"], axis=1
     )
-    selected_df_10_years.rename(columns={"datadate": "year"}, inplace=True)
+    selected_df_n_years.rename(columns={"datadate": "year"}, inplace=True)
 
-    return selected_df_10_years
+    return selected_df_n_years
 
 
 def info(df: pd.DataFrame):
