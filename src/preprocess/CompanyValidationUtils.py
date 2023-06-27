@@ -1,33 +1,61 @@
 import pandas as pd
 
 
-def find_comparable_companies(df, gvkeys_icw, gvkeys_non_fraud_temp):
+def find_comparable_companies(
+    fraud_df, non_fraud_df, gvkeys_icw, gvkeys_non_fraud, target_compared: str = "at"
+):
+    gvkeys_non_fraud_copy = gvkeys_non_fraud.copy()
+
     # Loop over each fraud gvkey to find a comparable company
     comparable_gvkey_dict = {}
+
     for fraud_gvkeys in list(gvkeys_icw.keys()):
         # Various setup and filters
-        temp_dict = {}
-        non_fraud_filter = df["gvkey"].isin(list(gvkeys_non_fraud_temp.keys()))
-        non_fraud_df_temp = df.loc[non_fraud_filter, :]
-        fraud_df_temp = df[df["gvkey"] == fraud_gvkeys].iloc[-1]
-        last_fraud_year = int(fraud_df_temp["year"])
-        temp_dict["comparable_year"] = last_fraud_year
-        at_lower_bound = fraud_df_temp["at_lower_bound"]
-        at_upper_bound = fraud_df_temp["at_upper_bound"]
-        year_filter = non_fraud_df_temp["year"] == last_fraud_year
-        at_filter = non_fraud_df_temp["at"].between(
+        inner_dict = {}
+
+        current_fraud_gvkeys_df = fraud_df[fraud_df["gvkey"] == fraud_gvkeys]
+
+        current_fraud_df_last = current_fraud_gvkeys_df[
+            current_fraud_gvkeys_df["year"] == current_fraud_gvkeys_df["bv_year"]
+        ]
+        comparable_year: int = current_fraud_df_last["bv_year"].item()
+        at_lower_bound: float = current_fraud_df_last["at_lower_bound"].item()
+        at_upper_bound: float = current_fraud_df_last["at_upper_bound"].item()
+
+        non_fraud_df_temp_filter = non_fraud_df["gvkey"].isin(
+            list(gvkeys_non_fraud_copy.keys())
+        )
+        non_fraud_df_temp = non_fraud_df.loc[non_fraud_df_temp_filter, :]
+
+        year_filter = non_fraud_df_temp["year"] == comparable_year
+
+        at_filter = non_fraud_df_temp[target_compared].between(
             at_lower_bound, at_upper_bound, inclusive=True
         )
-        filters = year_filter & at_filter
 
-        # Select the gvkey of the comparable company
-        non_fraud_gvkey_pass = non_fraud_df_temp[filters]["gvkey"]
-        selected = non_fraud_gvkey_pass.iloc[0]
+        # add filter for industry
+        industry = current_fraud_gvkeys_df["naics"].unique()[0]
+        industry_filter = non_fraud_df_temp["naics"] == industry
+
+        try:
+            filters = year_filter & at_filter & industry_filter
+            # Select the gvkey of the comparable company
+            non_fraud_gvkey_pass = non_fraud_df_temp[filters]["gvkey"]
+            selected = non_fraud_gvkey_pass.iloc[0]
+
+        except:
+            print("comparable company not found in the same industry")
+            filters = year_filter & at_filter
+            # Select the gvkey of the comparable company
+            non_fraud_gvkey_pass = non_fraud_df_temp[filters]["gvkey"]
+            selected = non_fraud_gvkey_pass.iloc[0]
 
         # Update the temporary dictionary and remove the selected key from the temporary non-fraud keys
-        temp_dict["comparable_company"] = selected
-        comparable_gvkey_dict[fraud_gvkeys] = temp_dict
-        gvkeys_non_fraud_temp.pop(selected)
+        inner_dict["comparable_year"] = comparable_year
+        inner_dict["comparable_company"] = selected
+        comparable_gvkey_dict[fraud_gvkeys] = inner_dict
+        gvkeys_non_fraud_copy.pop(selected)
+
     return comparable_gvkey_dict
 
 
@@ -63,7 +91,7 @@ def select_gvkeys_and_create_df(df, comparable_gvkey_dict, gvkeys_icw):
     return df_selected
 
 
-def concatenate_selected_df(df_selected, comparable_gvkey_dict):
+def remove_comparable_after_bv_year(df_selected, comparable_gvkey_dict):
     """
     Concatenate selected dataframes based on gvkeys.
 
