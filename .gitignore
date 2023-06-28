@@ -17,5 +17,12 @@
 outputs
 notebook
 data
+out/
+
+!feature_params.yaml
+!filter_params.yaml
+!model_params.yaml
+!path.yaml
+*.yaml
 
 __pycache__

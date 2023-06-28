@@ -2,6 +2,11 @@ version: '3'
 
 tasks:
   setup:
-    desc: Create out/ directory if it doesn't exist
+    desc: "Create out/ directory if it doesn't exist"
     cmds:
       - mkdir -p ./out
+
+  find-comparable:
+    desc: "Run program to find comparable companies"
+    cmds:
+      - set -a; source .env; python3 src/select_comparable.py

@@ -2,21 +2,12 @@
 from comparable_selector import ComparableSelector
 
 # Constant
-MODE = "local"
-
-PERCENTILE_LOWER_BOUND = 0.8
-PERCENTILE_UPPER_BOUND = 1.2
-TARGET_PERCENTILE_COLUMN = "at"
+from config.comparable_config import ComparableConfig
 
 
 def main():
-    cp = ComparableSelector(
-        n_records=10,
-        column_compared=TARGET_PERCENTILE_COLUMN,
-        lower_bound=PERCENTILE_LOWER_BOUND,
-        upper_bound=PERCENTILE_UPPER_BOUND,
-        mode=MODE,
-    )
+    config = ComparableConfig()
+    cp = ComparableSelector(config)
     cp.process()
 
 
