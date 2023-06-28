@@ -193,7 +193,9 @@ class ComparableSelector:
         lower_bound_suffix: str = "lower_bound",
         upper_bound_suffix: str = "upper_bound",
     ) -> pd.DataFrame:
-        df = df.copy()  # Creates a copy of the DataFrame to avoid SettingWithCopyWarning
+        df = (
+            df.copy()
+        )  # Creates a copy of the DataFrame to avoid SettingWithCopyWarning
         df[f"{self.column_compared}_{lower_bound_suffix}"] = df[
             self.column_compared
         ].apply(lambda x: get_bounding(target_value=x, bound=lower_bound))
@@ -245,10 +247,10 @@ class ComparableSelector:
                 current_fraud_gvkeys_df["year"] == current_fraud_gvkeys_df["ev_year"]
             ]
             comparable_year: int = current_fraud_df_last["ev_year"].item()
-            at_lower_bound: float = current_fraud_df_last[
+            lower_bound: float = current_fraud_df_last[
                 f"{self.column_compared}_lower_bound"
             ].item()
-            at_upper_bound: float = current_fraud_df_last[
+            upper_bound: float = current_fraud_df_last[
                 f"{self.column_compared}_upper_bound"
             ].item()
 
@@ -260,8 +262,8 @@ class ComparableSelector:
 
             year_filter = non_fraud_df_temp["year"] == comparable_year
 
-            at_filter = non_fraud_df_temp[self.column_compared].between(
-                at_lower_bound, at_upper_bound, inclusive="both"
+            financial_filter = non_fraud_df_temp[self.column_compared].between(
+                lower_bound, upper_bound, inclusive="both"
             )
 
             # add filter for industry
@@ -269,7 +271,7 @@ class ComparableSelector:
             industry_filter = non_fraud_df_temp["naics"] == industry
 
             try:
-                filters = year_filter & at_filter & industry_filter
+                filters = year_filter & financial_filter & industry_filter
                 # Select the gvkey of the comparable company
                 non_fraud_gvkey_pass = non_fraud_df_temp[filters]["gvkey"]
                 selected = non_fraud_gvkey_pass.iloc[
@@ -280,7 +282,7 @@ class ComparableSelector:
                 self.logger.info(
                     f"{fraud_gvkeys}: comparable company not found in the same industry {industry}"
                 )
-                filters = year_filter & at_filter
+                filters = year_filter & financial_filter
                 # Select the gvkey of the comparable company
                 non_fraud_gvkey_pass = non_fraud_df_temp[filters]["gvkey"]
                 selected = non_fraud_gvkey_pass.iloc[0]
@@ -421,7 +423,11 @@ class ComparableSelector:
         selected_df_n_years.reset_index(inplace=True, drop=True)
         selected_df_n_years["datadate"] = selected_df_n_years.pop("year")
         selected_df_n_years = selected_df_n_years.drop(
-            ["at_lower_bound", "at_upper_bound"], axis=1
+            [
+                f"{self.column_compared}_lower_bound",
+                f"{self.column_compared}_upper_bound",
+            ],
+            axis=1,
         )
         selected_df_n_years.rename(columns={"datadate": "year"}, inplace=True)
 
