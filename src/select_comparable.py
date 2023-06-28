@@ -1,5 +1,5 @@
 # import self-defined packages
-from comparable_selector import ComparableSelector
+from preprocess.comparable_selector import ComparableSelector
 
 # Constant
 from config.comparable_config import ComparableConfig
