@@ -5,7 +5,7 @@ from preprocess.company_validation_utils import *
 from utils.utils import *
 
 # Constants
-MODE = "local"
+
 WRDS_FILE_NAME = "wrds.parquet"
 GVKEYS_FILE_NAME = "gvkeys.yaml"
 TARGET_FILE_NAME = "data_10_years.parquet"
@@ -13,10 +13,11 @@ TARGET_PERCENTILE_COLUMN = "at"
 
 
 class ComparablePreprocessor:
-    def __init__(self, n_records, lower_bound, upper_bound):
+    def __init__(self, n_records, lower_bound, upper_bound, mode):
         self.n_records = n_records
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
+        self.mode = mode
 
     def process(self):
         # Load and parse the data files
@@ -95,7 +96,7 @@ class ComparablePreprocessor:
     def load_and_parse_data(self):
         # Setup and file paths
         # Create instances of PathProcessor for WRDS, fraud, and gvkeys data
-        processor = PathProcessor(mode=MODE)
+        processor = PathProcessor(mode=self.mode)
 
         # Get the data path for each file
         wrds_file_path = processor.get_data_path(target_file=WRDS_FILE_NAME)

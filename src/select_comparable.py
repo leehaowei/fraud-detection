@@ -13,6 +13,7 @@ def main():
         n_records=10,
         lower_bound=PERCENTILE_LOWER_BOUND,
         upper_bound=PERCENTILE_UPPER_BOUND,
+        mode=MODE,
     )
     cp.process()
 
