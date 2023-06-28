@@ -9,14 +9,14 @@ from utils.utils import *
 WRDS_FILE_NAME = "wrds.parquet"
 GVKEYS_FILE_NAME = "gvkeys.yaml"
 TARGET_FILE_NAME = "data_10_years.parquet"
-TARGET_PERCENTILE_COLUMN = "at"
 
 
-class ComparablePreprocessor:
-    def __init__(self, n_records, lower_bound, upper_bound, mode):
+class ComparableSelector:
+    def __init__(self, n_records, column_compared, lower_bound, upper_bound, mode):
         self.n_records = n_records
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
+        self.column_compared = column_compared
         self.mode = mode
 
     def process(self):
@@ -26,30 +26,23 @@ class ComparablePreprocessor:
         gvkeys_icw = gvkeys_dict["internal_control_weakness"]
         gvkeys_non_fraud = gvkeys_dict["non_fraud"]
 
-        # Add a new column, motive
-        df["motive"] = 0
-
         # Filter out unwanted records and add ICW-related information
-        df = self.remove_other_motive_add_icw_info(df, gvkeys_dict)
+        df_icw_and_non_fraud = self.remove_other_motive_add_icw_info(df, gvkeys_dict)
 
         # Process the data
-        df = self.assign_label_and_remove_post_violation(df)
+        df_labeled = self.assign_label_and_remove_post_violation(df_icw_and_non_fraud)
 
         # Add percentile columns and process non-fraud data
-        df = add_percentile_columns(
-            df,
-            target_column="at",
+        df_labeled = self.add_percentile_columns(
+            df_labeled,
             lower_bound=self.lower_bound,
             upper_bound=self.upper_bound,
         )
 
         # First Filter for gvkey more than N records
-        df_filtered = self.filter_dataframe(df)
+        df_filtered = self.ensure_enough_records(df_labeled)
 
         # reassign gvkeys_icw: only includes gvkeys_icw with more than N records
-        gvkeys_icw = gvkeys_dict["internal_control_weakness"]
-        gvkeys_non_fraud = gvkeys_dict["non_fraud"]
-
         gvkeys_icw_filtered = self.filter_gvkeys(
             df=df_filtered, original_gvkeys_icw=gvkeys_icw, target_motive=1
         )
@@ -68,7 +61,6 @@ class ComparablePreprocessor:
             non_fraud_df=non_fraud_df,
             gvkeys_icw=gvkeys_icw_filtered,
             gvkeys_non_fraud=gvkeys_non_fraud_filtered,
-            target_compared="at",
         )
 
         # Write the comparable gvkeys dictionary to a YAML file
@@ -111,7 +103,7 @@ class ComparablePreprocessor:
 
         return df_wrds, gvkeys_dict
 
-    def filter_dataframe(self, df):
+    def ensure_enough_records(self, df):
         counts = df["gvkey"].value_counts()
         mask = df["gvkey"].isin(counts[counts >= self.n_records].index)
         return df[mask]
@@ -148,10 +140,10 @@ class ComparablePreprocessor:
 
     def assign_label_and_remove_post_violation(self, df_wrds):
         # Assign label
-        df_wrds = assign_label(df_wrds, label=1)
+        df_wrds = self.assign_label(df_wrds, label=1)
 
         # Remove records
-        df_wrds = remove_records_after_bv_years(df_wrds)
+        df_wrds = self.remove_records_after_bv_years(df_wrds)
 
         return df_wrds
 
@@ -234,7 +226,6 @@ class ComparablePreprocessor:
         non_fraud_df,
         gvkeys_icw,
         gvkeys_non_fraud,
-        target_compared: str = "at",
     ):
         gvkeys_non_fraud_copy = gvkeys_non_fraud.copy()
 
@@ -252,10 +243,10 @@ class ComparablePreprocessor:
             ]
             comparable_year: int = current_fraud_df_last["ev_year"].item()
             at_lower_bound: float = current_fraud_df_last[
-                f"{target_compared}_lower_bound"
+                f"{self.column_compared}_lower_bound"
             ].item()
             at_upper_bound: float = current_fraud_df_last[
-                f"{target_compared}_upper_bound"
+                f"{self.column_compared}_upper_bound"
             ].item()
 
             non_fraud_df_temp_filter = non_fraud_df["gvkey"].isin(
@@ -266,7 +257,7 @@ class ComparablePreprocessor:
 
             year_filter = non_fraud_df_temp["year"] == comparable_year
 
-            at_filter = non_fraud_df_temp[target_compared].between(
+            at_filter = non_fraud_df_temp[self.column_compared].between(
                 at_lower_bound, at_upper_bound, inclusive="both"
             )
 
@@ -367,6 +358,47 @@ class ComparablePreprocessor:
             concatenated_df = pd.concat([concatenated_df, non_fraud_df_temp])
 
         return concatenated_df
+
+    def add_percentile_columns(
+        self,
+        df: pd.DataFrame,
+        lower_bound: float,
+        upper_bound: float,
+        lower_bound_suffix: str = "lower_bound",
+        upper_bound_suffix: str = "upper_bound",
+    ) -> pd.DataFrame:
+        df[f"{self.column_compared}_{lower_bound_suffix}"] = df[
+            self.column_compared
+        ].apply(lambda x: get_bounding(target_value=x, bound=lower_bound))
+        df[f"{self.column_compared}_{upper_bound_suffix}"] = df[
+            self.column_compared
+        ].apply(lambda x: get_bounding(target_value=x, bound=upper_bound))
+        return df
+
+    def assign_label(self, df, label: int = 1):
+        df = df.copy()
+
+        df["motive"] = 0
+
+        gvkey_filter = df["is_icw"] == 1
+        year_filter = df["year"].between(df["bv_year"], df["ev_year"], inclusive="both")
+        filters = gvkey_filter & year_filter
+        df.loc[filters, "motive"] = label
+
+        return df
+
+    def remove_records_after_bv_years(self, df):
+        df = df.copy()
+
+        gvkey_filter = df["is_icw"] == 1
+
+        filter_to_remove = (
+            df["year"] > df["ev_year"]
+        ) & gvkey_filter  # Create a filter for records to drop
+
+        filtered_df = df[~filter_to_remove]  # Apply the filter
+
+        return filtered_df
 
     def info(self, df: pd.DataFrame):
         print(df.shape)
