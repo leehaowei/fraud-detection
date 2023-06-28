@@ -193,12 +193,14 @@ class ComparableSelector:
         lower_bound_suffix: str = "lower_bound",
         upper_bound_suffix: str = "upper_bound",
     ) -> pd.DataFrame:
+        df = df.copy()  # Creates a copy of the DataFrame to avoid SettingWithCopyWarning
         df[f"{self.column_compared}_{lower_bound_suffix}"] = df[
             self.column_compared
         ].apply(lambda x: get_bounding(target_value=x, bound=lower_bound))
         df[f"{self.column_compared}_{upper_bound_suffix}"] = df[
             self.column_compared
         ].apply(lambda x: get_bounding(target_value=x, bound=upper_bound))
+
         return df
 
     def ensure_enough_records(self, df):
