@@ -14,7 +14,7 @@ class ComparableConfig:
     @staticmethod
     def get_file_path():
         file_path_dict = {
-            "wrds": "wrds.parquet",
-            "gvkeys": "gvkeys.yaml",
+            "wrds": os.getenv("WRDS_FILE_PATH"),
+            "gvkeys": os.getenv("GVKEYS_FILE_PATH"),
         }
         return file_path_dict

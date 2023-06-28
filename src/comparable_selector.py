@@ -3,15 +3,8 @@ import logging
 
 from path.PathProcessor import PathProcessor
 from preprocess.raw_preprocess_utils import *
-from preprocess.company_validation_utils import *
 from config.comparable_config import ComparableConfig
 from utils.utils import *
-
-# Constants
-
-WRDS_FILE_NAME = "wrds.parquet"
-GVKEYS_FILE_NAME = "gvkeys.yaml"
-TARGET_FILE_NAME = "data_10_years.parquet"
 
 
 class ComparableSelector:
