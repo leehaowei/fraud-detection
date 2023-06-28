@@ -18,7 +18,7 @@ def assign_label(df, label: int = 1):
     df = df.copy()
 
     gvkey_filter = df["is_icw"] == 1
-    year_filter = df["year"].between(df["bv_year"], df["ev_year"], inclusive=True)
+    year_filter = df["year"].between(df["bv_year"], df["ev_year"], inclusive="both")
     filters = gvkey_filter & year_filter
     df.loc[filters, "motive"] = label
 
