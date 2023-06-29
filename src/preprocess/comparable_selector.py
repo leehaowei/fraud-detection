@@ -312,7 +312,7 @@ class ComparableSelector:
                 non_fraud_pass_first_naics = non_fraud_pass_first["naics"]
 
                 industry_dict["same"] = False
-                industry_dict["naics"] = non_fraud_pass_first_naics
+                industry_dict["naics_compared"] = non_fraud_pass_first_naics
                 inner_dict["industry"] = industry_dict
 
                 # non_fraud_gvkey_pass = non_fraud_df_temp[filters]["gvkey"]
