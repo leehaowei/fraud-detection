@@ -1,6 +1,7 @@
-# import self-defined packages
+import json
 import logging
 
+# import self-defined packages
 from path.PathProcessor import PathProcessor
 from preprocess.raw_preprocess_utils import *
 from config.comparable_config import ComparableConfig
@@ -80,6 +81,21 @@ class ComparableSelector:
 
         # Write the comparable gvkeys dictionary to a YAML file
         save_yaml(target=comparable_gvkey_dict, file="comparable_gvkeys.yaml")
+
+        info_json = {
+            "metadata": {
+                "factor": self.column_compared,
+                "lower_bound": self.lower_bound,
+                "upper_bound": self.upper_bound,
+            },
+            "data": comparable_gvkey_dict,
+        }
+        # You can store it into a json file like this:
+        with open(
+            f"out/compared/{self.column_compared}_{int(self.lower_bound*10)}_{int(self.upper_bound*10)}.json",
+            "w",
+        ) as f:
+            json.dump(info_json, f)
 
         # Filter the df with comparable gvkeys
         df_comparable = self.select_gvkeys_and_create_df(
@@ -280,7 +296,7 @@ class ComparableSelector:
                     0
                 ]  # might cause IndexError when non_fraud_gvkey_pass is empty df
                 industry_dict["same"] = True
-                industry_dict["naics"] = industry
+                industry_dict["naics_compared"] = industry
                 inner_dict["industry"] = industry_dict
 
             except IndexError:
@@ -307,6 +323,12 @@ class ComparableSelector:
             # Update the temporary dictionary and remove the selected key from the temporary non-fraud keys
             inner_dict["comparable_year"] = comparable_year
             inner_dict["comparable_company"] = selected
+
+            # comparable_gvkey_dict["metadata"] = {
+            #     "factor": self.column_compared,
+            #     "lower_bound": self.lower_bound,
+            #     "upper_bound": self.upper_bound,
+            # }
             comparable_gvkey_dict[fraud_gvkeys] = inner_dict
             gvkeys_non_fraud_copy.pop(selected)
 
