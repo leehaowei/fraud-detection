@@ -270,6 +270,8 @@ class ComparableSelector:
             industry = current_fraud_gvkeys_df["naics"].unique()[0]
             industry_filter = non_fraud_df_temp["naics"] == industry
 
+            industry_dict = {"naics_original": industry}
+
             try:
                 filters = year_filter & financial_filter & industry_filter
                 # Select the gvkey of the comparable company
@@ -277,15 +279,30 @@ class ComparableSelector:
                 selected = non_fraud_gvkey_pass.iloc[
                     0
                 ]  # might cause IndexError when non_fraud_gvkey_pass is empty df
+                industry_dict["same"] = True
+                industry_dict["naics"] = industry
+                inner_dict["industry"] = industry_dict
 
             except IndexError:
                 self.logger.info(
                     f"{fraud_gvkeys}: comparable company not found in the same industry {industry}"
                 )
+
                 filters = year_filter & financial_filter
                 # Select the gvkey of the comparable company
-                non_fraud_gvkey_pass = non_fraud_df_temp[filters]["gvkey"]
-                selected = non_fraud_gvkey_pass.iloc[0]
+                non_fraud_pass = non_fraud_df_temp[filters]
+                non_fraud_pass_first = non_fraud_pass.iloc[0, :]
+                non_fraud_pass_first_gvkey = non_fraud_pass_first["gvkey"]
+                non_fraud_pass_first_naics = non_fraud_pass_first["naics"]
+
+                industry_dict["same"] = False
+                industry_dict["naics"] = non_fraud_pass_first_naics
+                inner_dict["industry"] = industry_dict
+
+                # non_fraud_gvkey_pass = non_fraud_df_temp[filters]["gvkey"]
+                # selected = non_fraud_gvkey_pass.iloc[0]
+
+                selected = non_fraud_pass_first_gvkey
 
             # Update the temporary dictionary and remove the selected key from the temporary non-fraud keys
             inner_dict["comparable_year"] = comparable_year
