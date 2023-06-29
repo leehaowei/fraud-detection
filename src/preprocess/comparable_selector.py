@@ -82,20 +82,20 @@ class ComparableSelector:
         # Write the comparable gvkeys dictionary to a YAML file
         save_yaml(target=comparable_gvkey_dict, file="comparable_gvkeys.yaml")
 
-        info_json = {
-            "metadata": {
-                "factor": self.column_compared,
-                "lower_bound": self.lower_bound,
-                "upper_bound": self.upper_bound,
-            },
-            "data": comparable_gvkey_dict,
-        }
-        # You can store it into a json file like this:
-        with open(
-            f"out/compared/{self.column_compared}_{int(self.lower_bound*10)}_{int(self.upper_bound*10)}.json",
-            "w",
-        ) as f:
-            json.dump(info_json, f)
+        # info_json = {
+        #     "metadata": {
+        #         "factor": self.column_compared,
+        #         "lower_bound": self.lower_bound,
+        #         "upper_bound": self.upper_bound,
+        #     },
+        #     "data": comparable_gvkey_dict,
+        # }
+        # # You can store it into a json file like this:
+        # with open(
+        #     f"out/compared/{self.column_compared}_{int(self.lower_bound*10)}_{int(self.upper_bound*10)}.json",
+        #     "w",
+        # ) as f:
+        #     json.dump(info_json, f)
 
         # Filter the df with comparable gvkeys
         df_comparable = self.select_gvkeys_and_create_df(
@@ -252,10 +252,22 @@ class ComparableSelector:
 
         # Loop over each fraud gvkey to find a comparable company
         comparable_gvkey_dict = {}
+        comparable_gvkey_dict_json = {}
+
+        # log json
+        info_json = {
+            "metadata": {
+                "factor": self.column_compared,
+                "lower_bound": self.lower_bound,
+                "upper_bound": self.upper_bound,
+            },
+            "data": comparable_gvkey_dict_json,
+        }
 
         for fraud_gvkeys in list(gvkeys_icw.keys()):
             # Various setup and filters
             inner_dict = {}
+            inner_dict_json = {}
 
             current_fraud_gvkeys_df = fraud_df[fraud_df["gvkey"] == fraud_gvkeys]
 
@@ -291,13 +303,15 @@ class ComparableSelector:
             try:
                 filters = year_filter & financial_filter & industry_filter
                 # Select the gvkey of the comparable company
-                non_fraud_gvkey_pass = non_fraud_df_temp[filters]["gvkey"]
-                selected = non_fraud_gvkey_pass.iloc[
-                    0
-                ]  # might cause IndexError when non_fraud_gvkey_pass is empty df
+                non_fraud_pass = non_fraud_df_temp[filters]
+                non_fraud_pass_first = non_fraud_pass.iloc[0, :]
+                non_fraud_pass_first_gvkey = non_fraud_pass_first["gvkey"]
+                selected = non_fraud_pass_first_gvkey  # might cause IndexError when non_fraud_gvkey_pass is empty df
+
                 industry_dict["same"] = True
                 industry_dict["naics_compared"] = industry
                 inner_dict["industry"] = industry_dict
+                inner_dict_json["num_comparable"] = non_fraud_pass["gvkey"].nunique()
 
             except IndexError:
                 self.logger.info(
@@ -314,9 +328,7 @@ class ComparableSelector:
                 industry_dict["same"] = False
                 industry_dict["naics_compared"] = non_fraud_pass_first_naics
                 inner_dict["industry"] = industry_dict
-
-                # non_fraud_gvkey_pass = non_fraud_df_temp[filters]["gvkey"]
-                # selected = non_fraud_gvkey_pass.iloc[0]
+                inner_dict_json["num_comparable"] = 0
 
                 selected = non_fraud_pass_first_gvkey
 
@@ -324,13 +336,17 @@ class ComparableSelector:
             inner_dict["comparable_year"] = comparable_year
             inner_dict["comparable_company"] = selected
 
-            # comparable_gvkey_dict["metadata"] = {
-            #     "factor": self.column_compared,
-            #     "lower_bound": self.lower_bound,
-            #     "upper_bound": self.upper_bound,
-            # }
             comparable_gvkey_dict[fraud_gvkeys] = inner_dict
+            comparable_gvkey_dict_json[fraud_gvkeys] = inner_dict_json
+
             gvkeys_non_fraud_copy.pop(selected)
+
+        # store it into a json file:
+        with open(
+            f"out/compared/{self.column_compared}_{int(self.lower_bound * 10)}_{int(self.upper_bound * 10)}.json",
+            "w",
+        ) as f:
+            json.dump(info_json, f)
 
         return comparable_gvkey_dict
 
