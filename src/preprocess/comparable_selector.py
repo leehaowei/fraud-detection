@@ -321,8 +321,7 @@ class ComparableSelector:
             industry_filter = non_fraud_df_temp["naics"] == industry
 
             industry_dict = {"naics_ori": industry}
-            # print(non_fraud_df_temp.columns)
-            print(f"start: {fraud_gvkeys}")
+
             filters = [year_filter, financial_filter, industry_filter]
 
             selected = None  # Set a default value for selected
@@ -340,7 +339,7 @@ class ComparableSelector:
             comparable_gvkey_dict_json[fraud_gvkeys] = inner_dict_json
 
             gvkeys_non_fraud_copy.pop(selected)
-            print(f"end: {fraud_gvkeys}")
+
 
         # store it into a json file:
         with open(
@@ -373,7 +372,7 @@ class ComparableSelector:
         """
         # Generate list of selected gvkeys
         comparable_non_fraud_list = [
-            v["comparable_company"] for k, v in comparable_gvkey_dict.items()
+            v["comparable"] for k, v in comparable_gvkey_dict.items()
         ]
         all_selected_gvkeys = comparable_non_fraud_list + list(gvkeys_icw.keys())
 
@@ -407,8 +406,8 @@ class ComparableSelector:
 
         # Iterate over each gvkey
         for fraud_gvkey, info in comparable_gvkey_dict.items():
-            comparable_gvkey = info["comparable_company"]
-            comparable_year = info["comparable_year"]
+            comparable_gvkey = info["comparable"]
+            comparable_year = info["year"]
             fraud_df_temp = df_selected[df_selected["gvkey"] == fraud_gvkey]
 
             # Create filters
