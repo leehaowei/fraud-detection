@@ -245,10 +245,12 @@ class ComparableSelector:
             if len(filters) == 3:
                 industry_dict["same"] = True
                 inner_dict["industry_filter"] = True
+                inner_dict_json["industry_filter"] = True
                 industry_dict["naics_compared"] = industry
             else:
                 industry_dict["same"] = False
                 inner_dict["industry_filter"] = False
+                inner_dict_json["industry_filter"] = False
                 industry_dict["naics_comp"] = non_fraud_pass_first_naics
 
             inner_dict["industry"] = industry_dict
