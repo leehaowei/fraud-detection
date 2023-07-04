@@ -256,7 +256,7 @@ class ComparableSelector:
                 industry_dict["same"] = False
                 inner_dict["industry_filter"] = False
                 inner_dict_json["industry_filter"] = False
-                industry_dict["naics_comp"] = non_fraud_pass_first_naics
+                industry_dict["naics_compared"] = non_fraud_pass_first_naics
 
             inner_dict["industry"] = industry_dict
             inner_dict["fin_filter"] = True

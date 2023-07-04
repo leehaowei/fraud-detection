@@ -102,7 +102,7 @@ def clean_dict(data_dict, valid_keys):
     data_dict_copy = {
         k: v
         for k, v in data_dict.items()
-        if (k in valid_keys) and (v["comparable_company"] in valid_keys)
+        if (k in valid_keys) and (v["naics_compared"]["industry"] in valid_keys)
     }
     return data_dict_copy
 
