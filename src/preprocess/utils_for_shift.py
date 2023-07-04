@@ -102,7 +102,7 @@ def clean_dict(data_dict, valid_keys):
     data_dict_copy = {
         k: v
         for k, v in data_dict.items()
-        if (k in valid_keys) and (v["naics_compared"]["industry"] in valid_keys)
+        if (k in valid_keys) and (v["comparable"] in valid_keys)
     }
     return data_dict_copy
 
@@ -142,7 +142,7 @@ def keep_only_comparable_year(df, data_dict):
     concatenated_df = empty_df.copy()
 
     for key, info in data_dict.items():
-        filter_1 = (df["gvkey"] == key) | (df["gvkey"] == info["comparable_company"])
+        filter_1 = (df["gvkey"] == key) | (df["gvkey"] == info["comparable"])
 
         if info["years_to_drop"] != []:
             filter_2 = ~df["year"].isin(info["years_to_drop"])
