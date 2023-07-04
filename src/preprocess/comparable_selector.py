@@ -70,7 +70,6 @@ class ComparableSelector:
         fraud_df, non_fraud_df = self.split_fraud_and_non(
             df=df_filtered, fraud_check_col="is_icw"
         )
-
         # Find comparable companies for each fraud gvkey
         comparable_gvkey_dict = self.find_comparable_companies(
             fraud_df=fraud_df,
@@ -285,6 +284,7 @@ class ComparableSelector:
         non_fraud_df,
         gvkeys_icw,
         gvkeys_non_fraud,
+        which_year: str = "bv_year"
     ):
         gvkeys_non_fraud_copy = gvkeys_non_fraud.copy()
 
@@ -310,9 +310,9 @@ class ComparableSelector:
             current_fraud_gvkeys_df = fraud_df[fraud_df["gvkey"] == fraud_gvkeys]
 
             current_fraud_df_last = current_fraud_gvkeys_df[
-                current_fraud_gvkeys_df["year"] == current_fraud_gvkeys_df["ev_year"]
+                current_fraud_gvkeys_df["year"] == current_fraud_gvkeys_df[which_year]
             ]
-            comparable_year: int = current_fraud_df_last["ev_year"].item()
+            comparable_year: int = current_fraud_df_last[which_year].item()
             lower_bound: float = current_fraud_df_last[
                 f"{self.column_compared}_lower_bound"
             ].item()
