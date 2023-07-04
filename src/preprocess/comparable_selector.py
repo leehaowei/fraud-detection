@@ -226,13 +226,19 @@ class ComparableSelector:
 
         return df.loc[fraud_filter, :], df.loc[non_fraud_filter, :]
 
-    def apply_filters_recursively(self, non_fraud_df_temp, filters, inner_dict, inner_dict_json, industry_dict,
-                                  industry):
+    def apply_filters_recursively(
+        self,
+        non_fraud_df_temp,
+        filters,
+        inner_dict,
+        inner_dict_json,
+        industry_dict,
+        industry,
+    ):
         if not filters:
             raise IndexError("No more filters to apply!")
 
         try:
-
             combined_filter = filters[0]
             for filter in filters[1:]:
                 combined_filter = combined_filter & filter
@@ -264,15 +270,21 @@ class ComparableSelector:
 
             return non_fraud_pass_first_gvkey
         except IndexError:
-            return self.apply_filters_recursively(non_fraud_df_temp, filters[:-1], inner_dict, inner_dict_json,
-                                                  industry_dict, industry)
+            return self.apply_filters_recursively(
+                non_fraud_df_temp,
+                filters[:-1],
+                inner_dict,
+                inner_dict_json,
+                industry_dict,
+                industry,
+            )
 
     def find_comparable_companies(
-            self,
-            fraud_df,
-            non_fraud_df,
-            gvkeys_icw,
-            gvkeys_non_fraud,
+        self,
+        fraud_df,
+        non_fraud_df,
+        gvkeys_icw,
+        gvkeys_non_fraud,
     ):
         gvkeys_non_fraud_copy = gvkeys_non_fraud.copy()
 
@@ -299,7 +311,7 @@ class ComparableSelector:
 
             current_fraud_df_last = current_fraud_gvkeys_df[
                 current_fraud_gvkeys_df["year"] == current_fraud_gvkeys_df["ev_year"]
-                ]
+            ]
             comparable_year: int = current_fraud_df_last["ev_year"].item()
             lower_bound: float = current_fraud_df_last[
                 f"{self.column_compared}_lower_bound"
@@ -330,8 +342,14 @@ class ComparableSelector:
 
             selected = None  # Set a default value for selected
             try:
-                selected = self.apply_filters_recursively(non_fraud_df_temp, filters, inner_dict, inner_dict_json,
-                                                          industry_dict, industry)
+                selected = self.apply_filters_recursively(
+                    non_fraud_df_temp,
+                    filters,
+                    inner_dict,
+                    inner_dict_json,
+                    industry_dict,
+                    industry,
+                )
             except IndexError:
                 print(f"No comparable company found for gvkey {fraud_gvkeys}")
 
@@ -344,11 +362,10 @@ class ComparableSelector:
 
             gvkeys_non_fraud_copy.pop(selected)
 
-
         # store it into a json file:
         with open(
-                f"out/compared/{self.column_compared}_{int(self.lower_bound * 10)}_{int(self.upper_bound * 10)}.json",
-                "w",
+            f"out/compared/{self.column_compared}_{int(self.lower_bound * 10)}_{int(self.upper_bound * 10)}.json",
+            "w",
         ) as f:
             json.dump(info_json, f)
 

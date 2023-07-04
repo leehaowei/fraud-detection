@@ -1,3 +1,4 @@
+from joblib import dump
 import numpy as np
 import yaml
 from matplotlib import pyplot as plt
@@ -24,10 +25,13 @@ class ModelTuning:
         self.best_model = grid.best_estimator_
 
         # Fit the best model to the data
-        model_pipeline = ModelPipeline(model=self.best_model)
-        model_pipeline.fit(X, y)
+        self.model_pipeline = ModelPipeline(model=self.best_model)
+        self.model_pipeline.fit(X, y)
 
-        return model_pipeline
+        return self.model_pipeline
+
+    def export_model_pipeline(self, file_path):
+        dump(self.model_pipeline, file_path)
 
     def evaluate(self, X, y, set_name=""):
         if self.best_model is None:
