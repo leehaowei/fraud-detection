@@ -96,6 +96,7 @@ class ComparableSelector:
 
         # Save results
         df_comparable_n_years.to_parquet(f"data_{self.n_records}_years.parquet")
+        self.df = df_comparable_n_years
 
         print(df_comparable_n_years.shape)
         print(len(comparable_gvkey_dict))
@@ -154,7 +155,7 @@ class ComparableSelector:
         df = ComparableSelector.assign_label(df, label=1)
 
         # Remove records
-        df = ComparableSelector.remove_records_after_bv_years(df)
+        df = ComparableSelector.remove_records_after_ev_years(df)
 
         return df
 
@@ -172,7 +173,7 @@ class ComparableSelector:
         return df
 
     @staticmethod
-    def remove_records_after_bv_years(df):
+    def remove_records_after_ev_years(df):
         df = df.copy()
 
         gvkey_filter = df["is_icw"] == 1
