@@ -234,6 +234,7 @@ class ComparableSelector:
         inner_dict_json,
         industry_dict,
         industry,
+        i,
     ):
         if not filters:
             raise IndexError("No more filters to apply!")
@@ -244,8 +245,13 @@ class ComparableSelector:
                 combined_filter = combined_filter & filter
 
             non_fraud_pass = non_fraud_df_temp[combined_filter]
-            non_fraud_pass_first = non_fraud_pass.iloc[0, :]
-            non_fraud_pass_first_gvkey = non_fraud_pass_first["gvkey"]
+            non_fraud_pass_unique_keys = non_fraud_pass["gvkey"].unique()
+            non_fraud_pass_unique_keys_selected = non_fraud_pass_unique_keys[i]
+            non_fraud_pass_first_gvkey = non_fraud_pass_unique_keys_selected
+            non_fraud_selected = non_fraud_pass[
+                non_fraud_pass["gvkey"] == non_fraud_pass_first_gvkey
+            ]
+            non_fraud_pass_first = non_fraud_selected.iloc[0, :]
             non_fraud_pass_first_naics = non_fraud_pass_first["naics"]
 
             if len(filters) == 3:
@@ -277,6 +283,7 @@ class ComparableSelector:
                 inner_dict_json,
                 industry_dict,
                 industry,
+                i,
             )
 
     def find_comparable_companies(
@@ -285,7 +292,7 @@ class ComparableSelector:
         non_fraud_df,
         gvkeys_icw,
         gvkeys_non_fraud,
-        which_year: str = "bv_year"
+        which_year: str = "bv_year",
     ):
         gvkeys_non_fraud_copy = gvkeys_non_fraud.copy()
 
@@ -343,6 +350,11 @@ class ComparableSelector:
 
             selected = None  # Set a default value for selected
             try:
+                i = 0
+                if fraud_gvkeys == "031521":
+                    i += 1
+                elif fraud_gvkeys == "062399":
+                    i += 2
                 selected = self.apply_filters_recursively(
                     non_fraud_df_temp,
                     filters,
@@ -350,12 +362,15 @@ class ComparableSelector:
                     inner_dict_json,
                     industry_dict,
                     industry,
+                    i=i,
                 )
+
             except IndexError:
                 print(f"No comparable company found for gvkey {fraud_gvkeys}")
 
             # Update the temporary dictionary and remove the selected key from the temporary non-fraud keys
             inner_dict["year"] = comparable_year
+            inner_dict["ev_year"] = current_fraud_df_last["ev_year"].item()
             inner_dict["comparable"] = selected
 
             comparable_gvkey_dict[fraud_gvkeys] = inner_dict
@@ -429,12 +444,12 @@ class ComparableSelector:
         # Iterate over each gvkey
         for fraud_gvkey, info in comparable_gvkey_dict.items():
             comparable_gvkey = info["comparable"]
-            comparable_year = info["year"]
+            keep_year = info["ev_year"]
             fraud_df_temp = df_selected[df_selected["gvkey"] == fraud_gvkey]
 
             # Create filters
             filter_1 = df_selected["gvkey"] == comparable_gvkey
-            filter_2 = df_selected["year"] <= comparable_year
+            filter_2 = df_selected["year"] <= keep_year
             filters = filter_1 & filter_2
 
             # Create non-fraud dataframe
