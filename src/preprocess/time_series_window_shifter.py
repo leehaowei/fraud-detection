@@ -7,6 +7,7 @@ class TimeSeriesWindowShifter:
         self.df = df[target_columns]
         self.target_columns = target_columns
         self.target_features = target_features
+        self.feature_states = {"initial": self.df.columns.to_list()}
 
     def fillna_with_median(self, group_col: str):
         """
@@ -21,6 +22,9 @@ class TimeSeriesWindowShifter:
         for col in self.target_features:
             medians = self.df.groupby(group_col)[col].transform("median")
             self.df.loc[self.df[col].isna(), col] = medians
+
+        self.feature_states["after_fillna"] = self.df.columns.to_list()
+
         return self
 
     def zero_to_nan(self):
@@ -32,6 +36,9 @@ class TimeSeriesWindowShifter:
         """
         for column in self.target_features:
             self.df.loc[self.df[column] == 0, column] = np.nan
+
+        self.feature_states["after_zero_to_nan"] = self.df.columns.to_list()
+
         return self
 
     def dropna(self, axis: int, how: str):
@@ -48,7 +55,7 @@ class TimeSeriesWindowShifter:
         self.df = self.df.dropna(axis=axis, how=how)
 
         self.target_features = self.df.drop(["motive", "gvkey", "year"], axis=1).columns
-
+        self.feature_states["after_dropna"] = self.df.columns.to_list()
         return self
 
     def shift_dataframe(self, n: int, use_pct: bool = False, decimals: int = 4):
@@ -98,6 +105,8 @@ class TimeSeriesWindowShifter:
         self.df = pd.concat(
             [self.df, new_df], axis=1
         )  # Concatenate the original DataFrame and the new DataFrame
+        self.feature_states["after_shift_dataframe"] = self.df.columns.to_list()
+
         return self
 
     def get_processed_df(self):
