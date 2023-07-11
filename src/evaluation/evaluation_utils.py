@@ -36,3 +36,27 @@ def apply_prediction(group, model):
     # Predict and add results to original data
     group["prediction"] = model.predict(X)
     return group[["motive", "gvkey", "year", "prediction"]]
+
+
+def get_eva2_score(data, model, alpha=0.5):
+    sum_score = 0
+
+    df_prediction = data.groupby("gvkey", group_keys=True).apply(
+        apply_prediction, model
+    )
+
+    for k in df_prediction["gvkey"].unique():
+        filter_ = df_prediction["gvkey"] == k
+        temp_df = df_prediction[filter_]
+
+        y_true = temp_df["motive"].values
+        y_pred = temp_df["prediction"].values
+
+        eva2_score = combined_score(y_true=y_true, y_pred=y_pred, alpha=alpha)
+        # print(f"{k}, score: {eva2_score:.2f}")
+
+        sum_score += eva2_score
+
+    avg_score = sum_score / df_prediction["gvkey"].nunique()
+    print("")
+    print(f"average score: {avg_score:.2f}")
