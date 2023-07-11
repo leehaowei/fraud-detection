@@ -2,7 +2,7 @@ from joblib import dump
 import numpy as np
 import yaml
 from matplotlib import pyplot as plt
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import roc_curve, auc, precision_recall_curve
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
 from .model_pipeline import ModelPipeline
@@ -150,6 +150,44 @@ class ModelTuning:
         plt.ylim([0.0, 1.05])
         plt.xlabel("False Positive Rate")
         plt.ylabel("True Positive Rate")
+        plt.title(title)
+        plt.legend(loc="lower right")
+
+        return plt.figure, plt.gca()
+
+    @staticmethod
+    def plot_pr_curves(X, y, models, title="Precision-Recall Curve"):
+        """
+        Plots Precision-Recall curves for models
+
+        :param X: feature dataset
+        :param y: target variable
+        :param models: a dictionary containing model names as keys and trained model instances as values
+        :param title: title of the plot
+        :return: the matplotlib figure and axes objects
+        """
+        plt.figure(figsize=(10, 8))
+        colors = ["#1f77b4", "#17becf", "#aec7e8"]  # shades of blue
+        lw = 2
+
+        for i, (model_name, model) in enumerate(models.items()):
+            probs = model.predict_proba(X)
+            preds = probs[:, 1]
+            precision, recall, _ = precision_recall_curve(y, preds)
+            pr_auc = auc(recall, precision)
+
+            plt.plot(
+                recall,
+                precision,
+                color=colors[i],
+                lw=lw,
+                label="%s PR curve (area = %0.2f)" % (model_name, pr_auc),
+            )
+
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel("Recall")
+        plt.ylabel("Precision")
         plt.title(title)
         plt.legend(loc="lower right")
 
