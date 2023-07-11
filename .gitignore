@@ -16,6 +16,11 @@
 # log from hydra
 outputs
 notebook
+!00_classify_gvkeys_.ipynb
+!01_select_comparable.ipynb
+!02_shift_and_get_pct.ipynb
+!03_build_model.ipynb
+!04_evaluation_2.ipynb
 data
 out/
 
@@ -23,6 +28,7 @@ out/
 !filter_params.yaml
 !model_params.yaml
 !path.yaml
+!evaluation_params.yaml
 *.yaml
 
 __pycache__

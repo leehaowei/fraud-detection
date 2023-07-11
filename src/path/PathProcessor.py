@@ -33,3 +33,6 @@ class PathProcessor:
 
     def get_model_params(self):
         return OmegaConf.load(self.base + "model_params.yaml")
+
+    def get_evaluation_params(self):
+        return OmegaConf.load(self.base + "evaluation_params.yaml")
