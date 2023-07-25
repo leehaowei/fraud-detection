@@ -14,6 +14,18 @@ def combined_score(y_true, y_pred, alpha=0.5):
     return score
 
 
+def get_all_scores(y_true, y_pred, alpha=0.5):
+    if np.sum(y_true) == np.sum(y_pred) == 0:
+        f1 = 1.0
+    else:
+        f1 = f1_score(y_true, y_pred)
+
+    onset_dev = onset_deviation(y_true, y_pred)
+    score = alpha * (1 - onset_dev / len(y_true)) + (1 - alpha) * f1
+
+    return f1, onset_dev, score
+
+
 def onset_deviation(y_true, y_pred):
     try:
         onset_true = np.where(y_true == 1)[0][0]
