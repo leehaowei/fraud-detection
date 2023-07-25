@@ -1,0 +1,50 @@
+fraud_types:
+  - "Weak internal control"
+  - "Non-top management"
+  - "Others: subsidiary violation"
+
+features:
+  - GVKEY
+  - datadate
+  - act
+  - ap
+  - at
+  - ceq
+  - che
+  - dlc
+  - dltt
+  - invt
+  - ivao
+  - ivst
+  - lct
+  - lt
+  - ppegt
+  - pstk
+  - re
+  - rect
+  - txp
+  - cogs
+  - dp
+  - ib
+  - ni
+  - sale
+  - txt
+  - xint
+  - dltis
+  - sstk
+  - csho
+  - prcc_f
+
+dtype_mapping_wrds:
+  cik: 'str'
+  GVKEY: 'str'
+  coperol: 'str'
+  executive_id: 'str'
+  naics: 'str'
+
+dtype_mapping_fraud:
+  cik: 'str'
+  gvkey: 'str'
+  coperol: 'str'
+  executive_id: 'str'
+  naics: 'str'

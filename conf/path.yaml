@@ -1,0 +1,3 @@
+prefix:
+  colab: "/content/drive/MyDrive/fs/thesis/fraud-detection"
+  local: ".."
