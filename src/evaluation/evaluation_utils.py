@@ -21,9 +21,10 @@ def get_all_scores(y_true, y_pred, alpha=0.5):
         f1 = f1_score(y_true, y_pred)
 
     onset_dev = onset_deviation(y_true, y_pred)
-    score = alpha * (1 - onset_dev / len(y_true)) + (1 - alpha) * f1
+    D = onset_dev / len(y_true)
+    score = alpha * (1 - D) + (1 - alpha) * f1
 
-    return onset_dev,f1, score
+    return D, f1, score
 
 
 def onset_deviation(y_true, y_pred):
